@@ -14,7 +14,7 @@ OC.Settings.Apps = OC.Settings.Apps || {
 
 	loadCategories: function() {
 		var categories = [
-			{displayName: 'Installed', id: '0'}
+			{displayName: 'Enabled', id: '0'}
 		];
 
 		var source   = $("#categories-template").html();
