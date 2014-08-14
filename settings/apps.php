@@ -31,7 +31,6 @@ OC_Util::checkAdminUser();
 \OCP\Util::addScript("settings", "apps");
 \OC_App::setActiveNavigationEntry( "core_apps" );
 
-
 $tmpl = new OC_Template( "settings", "apps", "user" );
 $tmpl->printPage();
 
