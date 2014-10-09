@@ -25,6 +25,7 @@ OC_Util::checkAdminUser();
 
 // Load the files we need
 \OCP\Util::addScript('handlebars-v1.3.0');
+\OCP\Util::addScript("settings", "settings");
 \OCP\Util::addStyle("settings", "settings");
 \OCP\Util::addScript('core', 'select2/select2');
 \OCP\Util::addStyle('core', 'select2/select2');

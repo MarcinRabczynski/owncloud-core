@@ -51,5 +51,14 @@ switch($category) {
 		break;
 }
 
+// fix groups to be an array
+$apps = array_map(function($app){
+	$groups = array();
+	if (is_string($app['groups'])) {
+		$groups = json_decode($app['groups']);
+	}
+	$app['groups'] = $groups;
+	return $app;
+}, $apps);
 
 OCP\JSON::success(array("apps" => $apps));

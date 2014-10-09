@@ -12,8 +12,8 @@ Handlebars.registerHelper('score', function() {
 
 OC.Settings = OC.Settings || {};
 OC.Settings.Apps = OC.Settings.Apps || {
-	setupGroupsSelect: function() {
-		OC.Settings.setupGroupsSelect($('#group_select'), {
+	setupGroupsSelect: function($elements) {
+		OC.Settings.setupGroupsSelect($elements, {
 			placeholder: t('core', 'All')
 		});
 	},
@@ -101,10 +101,10 @@ OC.Settings.Apps = OC.Settings.Apps || {
 
 		// image loading kung-fu
 		if (app.preview) {
-			var currentimage = new Image();
-			currentimage.src = app.preview;
+			var currentImage = new Image();
+			currentImage.src = app.preview;
 
-			currentimage.onload = function() {
+			currentImage.onload = function() {
 				page.find('.app-image')
 					.append(this)
 					.fadeIn();
@@ -118,17 +118,10 @@ OC.Settings.Apps = OC.Settings.Apps || {
 			page.find("label[for='groups_enable-"+app.id+"']").hide();
 			page.find(".groups-enable").attr('checked', null);
 		} else {
-			page.find('#group_select > option').each(function (i, el) {
-				app.groups = app.groups || [];
-				if (app.groups.length === 0 || app.groups.indexOf(el.value) >= 0) {
-					$(el).attr('selected', 'selected');
-				} else {
-					$(el).attr('selected', null);
-				}
-			});
+			page.find('#group_select').val((app.groups || []).join(','));
 			if (app.active) {
 				if (app.groups.length) {
-					page.find('#group_select').multiSelect();
+					OC.Settings.Apps.setupGroupsSelect(page.find('#group_select'));
 					page.find(".groups-enable").attr('checked','checked');
 				} else {
 					page.find(".groups-enable").attr('checked', null);
@@ -173,7 +166,6 @@ OC.Settings.Apps = OC.Settings.Apps || {
 					element.parent().find("#groups_enable-"+appId).hide();
 					element.parent().find("label[for='groups_enable-"+appId+"']").hide();
 					element.parent().find('#group_select').hide().val(null);
-					element.parent().find("div.multiselect").parent().remove();
 					OC.Settings.Apps.State.apps[appId].active = false;
 				}
 			},'json');
@@ -207,7 +199,6 @@ OC.Settings.Apps = OC.Settings.Apps || {
 						element.parent().find("#groups_enable-"+appId).hide();
 						element.parent().find("label[for='groups_enable-"+appId+"']").hide();
 						element.parent().find('#group_select').hide().val(null);
-						element.parent().find("div.multiselect").parent().remove();
 					} else {
 						element.parent().find("#groups_enable-"+appId).show();
 						element.parent().find("label[for='groups_enable-"+appId+"']").show();
@@ -314,6 +305,12 @@ $(document).ready(function () {
 	$(document).on('change', '#group_select', function() {
 		var element = $(this).parent().find('input.enable');
 		var groups = $(this).val();
+		if (groups && groups !== '') {
+			groups = groups.split(',');
+		} else {
+			groups = [];
+		}
+
 		var appId = element.data('appid');
 		if (appId) {
 			OC.Settings.Apps.enableApp(appId, false, element, groups);
@@ -322,15 +319,16 @@ $(document).ready(function () {
 	});
 
 	$(document).on('change', ".groups-enable", function() {
+		var $select = $(this).parent().find('#group_select');
+		$select.val('');
+
 		if (this.checked) {
-			$(this).parent().find("div.multiselect").parent().remove();
-			$(this).parent().find('#group_select').multiSelect();
+			OC.Settings.Apps.setupGroupsSelect($select);
 		} else {
-			$(this).parent().find('#group_select').hide().val(null);
-			$(this).parent().find("div.multiselect").parent().remove();
+			$select.select2('destroy');
 		}
 
-		$(this).parent().find('#group_select').change();
+		$select.change();
 	});
 
 });
