@@ -849,6 +849,12 @@ class OC_App {
 				if (file_exists($appIcon)) {
 					$info['preview'] = OC_Helper::imagePath($app, $app.'.svg');
 					$info['previewAsIcon'] = true;
+				} else {
+					$appIcon = self::getAppPath($app) . '/img/app.svg';
+					if (file_exists($appIcon)) {
+						$info['preview'] = OC_Helper::imagePath($app, 'app.svg');
+						$info['previewAsIcon'] = true;
+					}
 				}
 				$info['version'] = OC_App::getAppVersion($app);
 				$appList[] = $info;
