@@ -140,6 +140,7 @@ OC.Settings.Apps = OC.Settings.Apps || {
 	},
 
 	enableApp:function(appId, active, element, groups) {
+		OC.Settings.Apps.hideErrorMessage(appId);
 		groups = groups || [];
 		var appItem = $('div#app-'+appId+'');
 		element.val(t('settings','Please wait....'));
@@ -147,10 +148,10 @@ OC.Settings.Apps = OC.Settings.Apps || {
 			$.post(OC.filePath('settings','ajax','disableapp.php'),{appid:appId},function(result) {
 				if(!result || result.status !== 'success') {
 					if (result.data && result.data.message) {
-						OC.Settings.Apps.showErrorMessage(result.data.message);
+						OC.Settings.Apps.showErrorMessage(appId, result.data.message);
 						appItem.data('errormsg', result.data.message);
 					} else {
-						OC.Settings.Apps.showErrorMessage(t('settings', 'Error while disabling app'));
+						OC.Settings.Apps.showErrorMessage(appId, t('settings', 'Error while disabling app'));
 						appItem.data('errormsg', t('settings', 'Error while disabling app'));
 					}
 					element.val(t('settings','Disable'));
@@ -173,10 +174,10 @@ OC.Settings.Apps = OC.Settings.Apps || {
 			$.post(OC.filePath('settings','ajax','enableapp.php'),{appid: appId, groups: groups},function(result) {
 				if(!result || result.status !== 'success') {
 					if (result.data && result.data.message) {
-						OC.Settings.Apps.showErrorMessage(result.data.message);
+						OC.Settings.Apps.showErrorMessage(appId, result.data.message);
 						appItem.data('errormsg', result.data.message);
 					} else {
-						OC.Settings.Apps.showErrorMessage(t('settings', 'Error while enabling app'));
+						OC.Settings.Apps.showErrorMessage(appId, t('settings', 'Error while enabling app'));
 						appItem.data('errormsg', t('settings', 'Error while disabling app'));
 					}
 					element.val(t('settings','Enable'));
@@ -211,7 +212,7 @@ OC.Settings.Apps = OC.Settings.Apps || {
 				}
 			},'json')
 				.fail(function() {
-					OC.Settings.Apps.showErrorMessage(t('settings', 'Error while enabling app'));
+					OC.Settings.Apps.showErrorMessage(appId, t('settings', 'Error while enabling app'));
 					appItem.data('errormsg', t('settings', 'Error while enabling app'));
 					appItem.data('active',false);
 					appItem.addClass('appwarning');
@@ -220,8 +221,41 @@ OC.Settings.Apps = OC.Settings.Apps || {
 				});
 		}
 	},
-	removeNavigation: function(appid){
-		$.getJSON(OC.filePath('settings', 'ajax', 'navigationdetect.php'), {app: appid}).done(function(response){
+
+	updateApp:function(appId, element) {
+		var oldButtonText = element.val();
+		element.val(t('settings','Updating....'));
+		OC.Settings.Apps.hideErrorMessage(appId);
+		$.post(OC.filePath('settings','ajax','updateapp.php'),{appid:appId},function(result) {
+			if(!result || result.status !== 'success') {
+				OC.Settings.Apps.showErrorMessage(appId, t('settings','Error while updating app'));
+				element.val(oldButtonText);
+			}
+			else {
+				element.val(t('settings','Updated'));
+				element.hide();
+			}
+		},'json');
+	},
+
+	uninstallApp:function(appId, element) {
+		OC.Settings.Apps.hideErrorMessage(appId);
+		element.val(t('settings','Uninstalling ....'));
+		$.post(OC.filePath('settings','ajax','uninstallapp.php'),{appid:appId},function(result) {
+			if(!result || result.status !== 'success') {
+				OC.Settings.Apps.showErrorMessage(appId, t('settings','Error while uninstalling app'));
+				element.val(t('settings','Uninstall'));
+			} else {
+				OC.Settings.Apps.removeNavigation(appId);
+				element.parent().fadeOut(function() {
+					element.remove();
+				});
+			}
+		},'json');
+	},
+
+	removeNavigation: function(appId){
+		$.getJSON(OC.filePath('settings', 'ajax', 'navigationdetect.php'), {app: appId}).done(function(response){
 			if(response.status === 'success'){
 				var navIds=response.nav_ids;
 				for(var i=0; i< navIds.length; i++){
@@ -278,10 +312,17 @@ OC.Settings.Apps = OC.Settings.Apps || {
 			}
 		});
 	},
-	showErrorMessage: function(message) {
-		$('.appinfo .warning')
+
+	showErrorMessage: function(appId, message) {
+		$('div#app-'+appId+' .warning')
 			.show()
 			.text(message);
+	},
+
+	hideErrorMessage: function(appId) {
+		$('div#app-'+appId+' .warning')
+			.hide()
+			.text('');
 	}
 
 };
@@ -300,6 +341,20 @@ $(document).ready(function () {
 		var active = $(this).data('active');
 
 		OC.Settings.Apps.enableApp(appId, active, element);
+	});
+
+	$(document).on('click', '#apps-list input.uninstall', function () {
+		var appId = $(this).data('appid');
+		var element = $(this);
+
+		OC.Settings.Apps.uninstallApp(appId, element);
+	});
+
+	$(document).on('click', '#apps-list input.update', function () {
+		var appId = $(this).data('appid');
+		var element = $(this);
+
+		OC.Settings.Apps.updateApp(appId, element);
 	});
 
 	$(document).on('change', '#group_select', function() {

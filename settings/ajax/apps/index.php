@@ -58,6 +58,7 @@ $apps = array_map(function($app){
 		$groups = json_decode($app['groups']);
 	}
 	$app['groups'] = $groups;
+	$app['canUnInstall'] = !$app['active'] && $app['removable'];
 	return $app;
 }, $apps);
 

@@ -60,10 +60,14 @@
 	<label for="groups_enable-{{id}}"><?php p($l->t('Enable only for specific groups')); ?></label>
 	<br />
 	<input type="hidden" id="group_select" title="<?php p($l->t('All')); ?>" style="width: 200px">
-
 	{{else}}
 	<input class="enable" type="submit" data-appid="{{id}}" data-active="false" value="<?php p($l->t("Enable"));?>"/>
 	{{/if}}
+	{{#if canUnInstall}}
+	<input class="uninstall" type="submit" value="<?php p($l->t('Uninstall App')); ?>" data-appid="{{id}}" />
+	{{/if}}
+
+	<div class="warning hidden"></div>
 
 	</div>
 </script>
